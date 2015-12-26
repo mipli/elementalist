@@ -1,0 +1,6 @@
+{
+  "name": "Typescript Rogue",
+  "dependencies": {
+   	"rot.js": "~0.5.0"
+  }
+}
