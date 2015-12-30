@@ -1,5 +1,6 @@
 import {Game} from './Game';
 
 window.onload = function() {
-    Game.init();
+    var game = new Game();
+    game.init(90, 50);
 }
