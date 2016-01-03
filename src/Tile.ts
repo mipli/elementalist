@@ -3,10 +3,17 @@ import {Glyph} from './Glyph';
 export class Tile {
     glyph: Glyph;
     entityGuid: string;
+    walkable: boolean;
 
-    constructor(glyph: Glyph, entityGuid: string = '') {
+    constructor(glyph: Glyph, walkable: boolean = true) {
         this.glyph = glyph;
-        this.entityGuid = entityGuid;
+        this.walkable = walkable;
+
+        this.entityGuid = '';
+    }
+
+    isWalkable(): boolean {
+        return this.walkable;
     }
 
     getGlyph(): Glyph {

@@ -1,4 +1,7 @@
+/// <reference path="../typings/lib.es6.d.ts" />
+
 import {Map} from './Map';
+import {Game} from './Game';
 import {Glyph} from './Glyph';
 import {Entity} from './Entity';
 
@@ -6,11 +9,17 @@ import {ActorComponent} from './components/ActorComponent';
 import {GlyphComponent} from './components/GlyphComponent';
 import {PositionComponent} from './components/PositionComponent';
 
+import {MouseButtonType} from './MouseButtonType';
+import {MouseClickEvent} from './MouseClickEvent';
+import {KeyboardEventType} from './KeyboardEventType';
+import {KeyboardEvent} from './KeyboardEvent';
+
 export class GameScreen {
     display: any;
     map: Map;
     height: number;
     width: number;
+    game: Game;
 
     constructor(display: any, width: number, height: number) {
         this.display = display;
@@ -18,6 +27,9 @@ export class GameScreen {
         this.height = height;
         this.map = new Map(this.width, this.height - 1);
         this.map.generate();
+        this.game = new Game();
+
+        this.game.addListener('canMoveTo', this.canMoveTo.bind(this));
     }
 
     render() {
@@ -31,6 +43,22 @@ export class GameScreen {
         }
 
         this.map.mapEntities(this.renderEntity);
+    }
+
+    handleInput(eventData: any) {
+        if (eventData.getClassName() === 'MouseClickEvent') {
+            this.handleMouseClickEvent(<MouseClickEvent>eventData);
+        } else if (eventData.getClassName() === 'KeyboardEvent') {
+            this.handleKeyboardEvent(<KeyboardEvent>eventData);
+        }
+    }
+
+    handleMouseClickEvent(event: MouseClickEvent) {
+        var tile = this.map.getTile(event.getX(), event.getY());
+        console.debug('clicked', event.getX(), event.getY(), tile);
+    }
+
+    handleKeyboardEvent(event: KeyboardEvent) {
     }
 
     private getRenderableBoundary() {
@@ -55,8 +83,8 @@ export class GameScreen {
     }
 
     private renderEntity = (entity: Entity) => {
-        var positionComponent: PositionComponent = <PositionComponent>entity.getComponent(PositionComponent.getName());
-        var glyphComponent: GlyphComponent = <GlyphComponent>entity.getComponent(GlyphComponent.getName());
+        var positionComponent: PositionComponent = <PositionComponent>entity.getComponent('PositionComponent');
+        var glyphComponent: GlyphComponent = <GlyphComponent>entity.getComponent('GlyphComponent');
 
         var position = positionComponent.getPosition();
         var glyph = glyphComponent.getGlyph();
@@ -68,5 +96,16 @@ export class GameScreen {
         this.renderGlyph(glyph, position.x, position.y);
 
         return true;
+    }
+
+    private canMoveTo(position: {x: number, y: number}, acc: boolean = true): Promise<any> {
+        return new Promise<any>((resolve, reject) => {
+            var tile = this.map.getTile(position.x, position.y);
+            if (tile.isWalkable() && tile.getEntityGuid() === '') {
+                resolve(position);
+            } else {
+                reject(position);
+            }
+        });
     }
 }

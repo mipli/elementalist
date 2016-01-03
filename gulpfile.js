@@ -36,11 +36,11 @@ gulp.task('compile-js', function() {
             basedir: config.app.path,
             extensions: ['.js', '.ts', '.json'],
             debug: true
-        })      
+        })
         .plugin(tsify, {target: 'es6'})
         .transform(babelify.configure({
             extensions: ['.js', '.ts', '.json'],
-            presets: ["es2015"] 
+            presets: ["es2015"]
         }))
         .add(config.app.path + '/' + config.app.main)
         .bundle()
@@ -57,12 +57,12 @@ gulp.task('compile-js', function() {
     var bundler = browserify({
     		basedir: config.app.path,
     		debug: true
-    	})      
+    	})
         .add(config.app.path + '/' + config.app.main)
         .plugin(tsify, {target: 'es6'})
         .transform(babelify.configure({
             extensions: ['.js', '.ts', '.json'],
-            presets: ["es2015"] 
+            presets: ["es2015"]
         }));
 
     return bundler.bundle()

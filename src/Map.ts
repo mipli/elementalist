@@ -9,6 +9,7 @@ import * as Tiles from './Tiles';
 import {ActorComponent} from './components/ActorComponent';
 import {GlyphComponent} from './components/GlyphComponent';
 import {PositionComponent} from './components/PositionComponent';
+import {InputComponent} from './components/InputComponent';
 
 export class Map {
     width: number;
@@ -53,26 +54,38 @@ export class Map {
             glyph: new Glyph('@', 'white', 'black')
         }));
         player.addComponent(new PositionComponent());
+        player.addComponent(new InputComponent());
 
         this.addEntityAtRandomPosition(player);
+
+        var g = new Game();
+        g.addEntity(player);
     }
 
     addEntityAtRandomPosition(entity: Entity): boolean {
-        if (!entity.hasComponent(PositionComponent.getName())) {
+        if (!entity.hasComponent('PositionComponent')) {
             return false;
         }
         var found = false;
-        while (!found) {
+        var maxTries = this.width * this.height * 10;
+        var i = 0;
+        while (!found && i < maxTries) {
             var x = Math.floor(Math.random() * this.width);
             var y = Math.floor(Math.random() * this.height);
-            if (this.getTile(x, y) === Tiles.floorTile && !this.positionHasEntity(x, y)) {
+            i++;
+            if (this.getTile(x, y).isWalkable() && !this.positionHasEntity(x, y)) {
                 found = true;
             }
         }
+        if (!found) {
+            console.error('No free spot found for', entity);
+            throw 'No free spot found for a new entity';
+        }
 
-        var component: PositionComponent = <PositionComponent>entity.getComponent(PositionComponent.getName());
+        var component: PositionComponent = <PositionComponent>entity.getComponent('PositionComponent');
         component.setPosition(x, y);
         this.entities[entity.getGuid()] = entity;
+        this.getTile(x, y).setEntityGuid(entity.getGuid());
         return true;
     }
 
@@ -94,7 +107,7 @@ export class Map {
         for (var x = 0; x < this.width; x++) {
             tiles.push([]);
             for (var y = 0; y < this.height; y++) {
-                tiles[x].push(Tiles.nullTile);
+                tiles[x].push(Tiles.create.nullTile());
             }
         }
 
@@ -106,9 +119,9 @@ export class Map {
 
         generator.create((x, y, v) => {
             if (v === 1) {
-                tiles[x][y] = Tiles.floorTile;
+                tiles[x][y] = Tiles.create.floorTile();
             } else {
-                tiles[x][y] = Tiles.wallTile;
+                tiles[x][y] = Tiles.create.wallTile();
             }
         });
 

@@ -1,16 +1,9 @@
 import {Component} from './Component';
+import {Entity} from '../Entity';
 
-export class ActorComponent implements Component {
-    //public static name: string;
-    public name: string;
-
-    public static getName(): string {
-        return ActorComponent.prototype.constructor.toString().match(/\w+/g)[1];
-    }
-
+export class ActorComponent extends Component {
     constructor() {
-        //ActorComponent.name = 'ActorComponent';
-        this.name = ActorComponent.getName();
+        super();
     }
 
     act() {
