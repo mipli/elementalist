@@ -1,9 +1,9 @@
 import {Glyph} from './Glyph';
 
 export class Tile {
-    glyph: Glyph;
-    entityGuid: string;
-    walkable: boolean;
+    private glyph: Glyph;
+    private entityGuid: string;
+    private walkable: boolean;
 
     constructor(glyph: Glyph, walkable: boolean = true) {
         this.glyph = glyph;
@@ -24,11 +24,7 @@ export class Tile {
         return this.entityGuid;
     }
 
-    setEntityGuid(entityGuid: string): boolean {
-        if (this.entityGuid !== '') {
-            return false;
-        }
+    setEntityGuid(entityGuid: string) {
         this.entityGuid = entityGuid;
-        return true;
     }
 }

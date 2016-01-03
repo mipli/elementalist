@@ -18,16 +18,24 @@ export class PositionComponent extends Component {
         return {x: this.x, y: this.y};
     }
 
+    getX(): number {
+        return this.x;
+    }
+
+    getY(): number {
+        return this.y;
+    }
+
     setPosition(x: number, y: number) {
         this.x = x;
         this.y = y;
     }
 
     setListeners() {
-        this.parent.addListener('attemptMove', this.attemptMove.bind(this));
+        this.parent.addListener('attemptMove', this.attemptMoveListener.bind(this));
     }
 
-    attemptMove(direction: {x: number, y: number}): Promise<any> {
+    attemptMoveListener(direction: {x: number, y: number}): Promise<any> {
         return new Promise<any>((resolve, reject) => {
             var g = new Game();
             var position = {
@@ -46,7 +54,13 @@ export class PositionComponent extends Component {
     }
 
     move(direction: {x: number, y: number}) {
+        var oldPosition = {
+            x: this.x,
+            y: this.y
+        };
         this.x += direction.x;
         this.y += direction.y;
+        var g = new Game();
+        g.sendEvent('entityMoved', {entity: this.parent, oldPosition: oldPosition});
     }
 }

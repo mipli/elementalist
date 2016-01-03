@@ -23,6 +23,9 @@ export class Map {
         this.height = height;
         this.tiles = [];
         this.entities = {};
+
+        var g = new Game();
+        g.addListener('entityMoved', this.entityMovedListener.bind(this));
     }
 
     mapEntities(callback: (item: Entity) => any) {
@@ -44,9 +47,10 @@ export class Map {
         return this.tiles[x][y];
     }
 
-
     generate() {
         this.tiles = this.generateLevel();
+
+        var g = new Game();
 
         var player = new Entity();
         player.addComponent(new ActorComponent());
@@ -58,8 +62,18 @@ export class Map {
 
         this.addEntityAtRandomPosition(player);
 
-        var g = new Game();
         g.addEntity(player);
+
+        var enemy = new Entity();
+        enemy.addComponent(new ActorComponent());
+        enemy.addComponent(new GlyphComponent({
+            glyph: new Glyph('n', 'cyan', 'black')
+        }));
+        enemy.addComponent(new PositionComponent());
+
+        this.addEntityAtRandomPosition(enemy);
+
+        g.addEntity(enemy);
     }
 
     addEntityAtRandomPosition(entity: Entity): boolean {
@@ -126,5 +140,20 @@ export class Map {
         });
 
         return tiles;
+    }
+
+    private entityMovedListener(data: any): Promise<any> {
+        return new Promise<any>((resolve, reject) => {
+            var oldPosition = data.oldPosition;
+            var entity = data.entity;
+            if (!entity.hasComponent('PositionComponent')) {
+                reject(data);
+                return;
+            }
+            var positionComponent = <PositionComponent>entity.getComponent('PositionComponent');
+            this.getTile(oldPosition.x, oldPosition.y).setEntityGuid('');
+            this.getTile(positionComponent.getX(), positionComponent.getY()).setEntityGuid(entity.getGuid());
+            resolve(data);
+        });
     }
 }
