@@ -91,6 +91,9 @@ export class InputComponent extends Component {
                             resolve(false);
                         });
                     break;
+                case ROT.VK_PERIOD:
+                    resolve(true);
+                    break;
                 default:
                     reject();
                     break;

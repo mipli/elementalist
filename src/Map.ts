@@ -10,6 +10,7 @@ import {ActorComponent} from './components/ActorComponent';
 import {GlyphComponent} from './components/GlyphComponent';
 import {PositionComponent} from './components/PositionComponent';
 import {InputComponent} from './components/InputComponent';
+import {RandomWalkComponent} from './components/RandomWalkComponent';
 
 export class Map {
     width: number;
@@ -70,6 +71,7 @@ export class Map {
             glyph: new Glyph('n', 'cyan', 'black')
         }));
         enemy.addComponent(new PositionComponent());
+        enemy.addComponent(new RandomWalkComponent());
 
         this.addEntityAtRandomPosition(enemy);
 

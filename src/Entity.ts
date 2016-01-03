@@ -2,6 +2,7 @@ import {Guid} from './Guid';
 import {Game} from './Game';
 import {Component} from './components/Component';
 import {InputComponent} from './components/InputComponent';
+import {RandomWalkComponent} from './components/RandomWalkComponent';
 
 export class Entity {
     guid: string;
@@ -26,17 +27,36 @@ export class Entity {
         g.render();
         this.acting = true;
         if (this.hasComponent('InputComponent')) {
-            g.lockEngine();
-            var component = <InputComponent>this.getComponent('InputComponent');
-            component.waitForInput()
-                .then(() => {
-                    g.render();
-                    g.unlockEngine();
-                    this.acting = false;
-                });
+            this.handleInputComponent();
+        } else if (this.hasComponent('RandomWalkComponent')) {
+            this.handleRandomWalkComponent();
         } else {
             this.acting = false;
         }
+    }
+
+    private handleRandomWalkComponent() {
+        var g = new Game();
+        g.lockEngine();
+        var component = <RandomWalkComponent>this.getComponent('RandomWalkComponent');
+        component.randomWalk()
+            .then(() => {
+                g.render();
+                g.unlockEngine();
+                this.acting = false;
+            });
+    }
+
+    private handleInputComponent() {
+        var g = new Game();
+        g.lockEngine();
+        var component = <InputComponent>this.getComponent('InputComponent');
+        component.waitForInput()
+            .then(() => {
+                g.render();
+                g.unlockEngine();
+                this.acting = false;
+            });
     }
 
     addComponent(component: Component) {
