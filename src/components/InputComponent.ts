@@ -3,7 +3,10 @@
 declare var ROT: any;
 
 import {Component} from './Component';
+import {PositionComponent} from './PositionComponent';
 import {Entity} from '../Entity';
+import {Game} from '../Game';
+import {Map} from '../Map';
 
 import {MouseButtonType} from '../MouseButtonType';
 import {MouseClickEvent} from '../MouseClickEvent';
@@ -16,9 +19,14 @@ export class InputComponent extends Component {
     private resolve: any;
     private reject: any;
 
+    game: Game;
+    map: Map;
+
     constructor(options: {} = {}) {
         super();
         this.waiting = false;
+        this.game = new Game();
+        this.map = this.game.getMap();
     }
 
     waitForInput(): Promise<any> {
@@ -60,8 +68,8 @@ export class InputComponent extends Component {
                     resolve(true);
                     break;
                 case ROT.VK_J:
-                    this.parent.sendEvent('attemptMove', {x: 0, y: 1})
-                        .then((a) => {
+                    this.directionPressed({x: 0, y: 1})
+                        .then(() => {
                             resolve(true);
                         })
                         .catch(() => {
@@ -69,8 +77,8 @@ export class InputComponent extends Component {
                         });
                     break;
                 case ROT.VK_K:
-                    this.parent.sendEvent('attemptMove', {x: 0, y: -1})
-                        .then((a) => {
+                    this.directionPressed({x: 0, y: -1})
+                        .then(() => {
                             resolve(true);
                         })
                         .catch(() => {
@@ -78,8 +86,8 @@ export class InputComponent extends Component {
                         });
                     break;
                 case ROT.VK_H:
-                    this.parent.sendEvent('attemptMove', {x: -1, y: 0})
-                        .then((a) => {
+                    this.directionPressed({x: -1, y: 0})
+                        .then(() => {
                             resolve(true);
                         })
                         .catch(() => {
@@ -87,8 +95,8 @@ export class InputComponent extends Component {
                         });
                     break;
                 case ROT.VK_L:
-                    this.parent.sendEvent('attemptMove', {x: 1, y: 0})
-                        .then((a) => {
+                    this.directionPressed({x: 1, y: 0})
+                        .then(() => {
                             resolve(true);
                         })
                         .catch(() => {
@@ -121,5 +129,31 @@ export class InputComponent extends Component {
                     break;
             }
         });
+    }
+
+    private directionPressed(direction: {x: number, y: number}): Promise<any> {
+        return new Promise<any>((resolve, reject) => {
+            const newPosition = this.getPositionAfterDirection(direction);
+            const entity = this.map.getEntityAt(newPosition.x, newPosition.y);
+            if (entity) {
+                reject();
+            } else {
+                this.parent.sendEvent('attemptMove', direction)
+                    .then(() => {
+                        resolve();
+                    })
+                    .catch(() => {
+                        reject();
+                    });
+            }
+        });
+    }
+
+    private getPositionAfterDirection(direction: {x: number, y: number}): {x: number, y: number} {
+        const positionComponent = <PositionComponent>this.parent.getComponent('PositionComponent');
+        return {
+            x: positionComponent.getX() + direction.x,
+            y: positionComponent.getY() + direction.y
+        };
     }
 }

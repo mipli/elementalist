@@ -15,6 +15,7 @@ import {InputComponent} from './components/InputComponent';
 import {FactionComponent} from './components/FactionComponent';
 import {AbilityFireboltComponent} from './components/AbilityFireboltComponent';
 import {AbilityIceLanceComponent} from './components/AbilityIceLanceComponent';
+import {MeleeAttackComponent} from './components/MeleeAttackComponent';
 
 import {MouseButtonType} from './MouseButtonType';
 import {MouseClickEvent} from './MouseClickEvent';
@@ -30,13 +31,14 @@ export class GameScreen {
     game: Game;
     nullTile: Tile;
 
-    constructor(display: any, width: number, height: number) {
+    constructor(display: any, width: number, height: number, map: Map) {
         this.game = new Game();
         this.display = display;
         this.width = width;
         this.height = height;
-        this.map = new Map(this.width, this.height - 1);
-        this.map.generate();
+        this.map = map;
+        //new Map(this.width, this.height - 1);
+        //this.map.generate();
 
         this.nullTile = Tiles.create.nullTile();
 
@@ -57,12 +59,11 @@ export class GameScreen {
         }));
         this.player.addComponent(new AbilityFireboltComponent());
         this.player.addComponent(new AbilityIceLanceComponent());
+        this.player.addComponent(new MeleeAttackComponent());
 
         this.map.addEntityAtRandomPosition(this.player);
 
         this.game.addEntity(this.player);
-
-        this.game.addListener('canMoveTo', this.canMoveTo.bind(this));
     }
 
     render() {
@@ -178,16 +179,5 @@ export class GameScreen {
         this.renderGlyph(glyph, position.x, position.y);
 
         return true;
-    }
-
-    private canMoveTo(position: {x: number, y: number}, acc: boolean = true): Promise<any> {
-        return new Promise<any>((resolve, reject) => {
-            var tile = this.map.getTile(position.x, position.y);
-            if (tile.isWalkable() && tile.getEntityGuid() === '') {
-                resolve(position);
-            } else {
-                reject(position);
-            }
-        });
     }
 }

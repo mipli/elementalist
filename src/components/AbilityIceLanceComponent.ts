@@ -54,18 +54,21 @@ export class AbilityIceLanceComponent extends Component {
             const map = this.game.getMap();
             const positionComponent = <PositionComponent>this.parent.getComponent('PositionComponent');
 
-            const entities = map.getNearbyEntities(positionComponent, this.range);
+            const entities = map.getNearbyEntities(
+                positionComponent,
+                this.range,
+                (entity) => {
+                    return entity.hasComponent('FireAffinityComponent');
+                }
+            );
 
             if (entities.length === 0) {
+                console.log('no entities nearby');
                 resolve(null);
                 return;
             }
 
             const target = entities.pop();
-            if (!target.hasComponent('FireAffinityComponent')) {
-                resolve(null);
-                return
-            }
 
             this.lastUsed = this.game.getCurrentTurn();
             this.parent.sendEvent('consumeFire');

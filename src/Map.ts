@@ -37,6 +37,7 @@ export class Map {
         var g = new Game();
         g.addListener('entityMoved', this.entityMovedListener.bind(this));
         g.addListener('entityKilled', this.entityKilledListener.bind(this));
+        g.addListener('canMoveTo', this.canMoveTo.bind(this));
     }
 
     setupFov() {
@@ -134,7 +135,7 @@ export class Map {
             glyph: new Glyph('i', 'cyan', 'black')
         }));
         enemy.addComponent(new PositionComponent());
-        enemy.addComponent(new RandomWalkComponent());
+        enemy.addComponent(new AIFactionComponent());
         enemy.addComponent(new IceAffinityComponent());
         enemy.addComponent(new SightComponent());
         enemy.addComponent(new FactionComponent( {
@@ -193,6 +194,12 @@ export class Map {
         var tile = this.getTile(x, y);
         var entityGuid = tile.getEntityGuid();
         return entityGuid !== '';
+    }
+
+    getEntityAt(x: number, y: number): Entity {
+        var tile = this.getTile(x, y);
+        var entityGuid = tile.getEntityGuid();
+        return this.entities[entityGuid];
     }
 
     getNearbyEntities(originComponent: PositionComponent, radius: number, filter: (entity: Entity) => boolean = (e) => {return true;}): Entity[] {
@@ -263,6 +270,17 @@ export class Map {
         return new Promise<any>((resolve, reject) => {
             this.removeEntity(data);
             resolve(data);
+        });
+    }
+
+    private canMoveTo(position: {x: number, y: number}, acc: boolean = true): Promise<any> {
+        return new Promise<any>((resolve, reject) => {
+            var tile = this.getTile(position.x, position.y);
+            if (tile.isWalkable() && tile.getEntityGuid() === '') {
+                resolve(position);
+            } else {
+                reject(position);
+            }
         });
     }
 }

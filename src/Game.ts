@@ -21,6 +21,7 @@ export class Game {
     canvas: any;
 
     activeScreen: GameScreen;
+    map: Map;
 
     display: any;
     scheduler: any;
@@ -62,7 +63,10 @@ export class Game {
             }}, true);
         this.engine = new ROT.Engine(this.scheduler);
 
-        var gameScreen = new GameScreen(this.display, this.screenWidth, this.screenHeight);
+        this.map = new Map(this.screenWidth, this.screenHeight - 1);
+        this.map.generate();
+
+        var gameScreen = new GameScreen(this.display, this.screenWidth, this.screenHeight, this.map);
         this.activeScreen = gameScreen;
 
         this.bindInputHandling();
@@ -190,7 +194,7 @@ export class Game {
     }
 
     public getMap(): Map {
-        return this.activeScreen.getMap();
+        return this.map;
     }
 
     public getCurrentTurn() {
