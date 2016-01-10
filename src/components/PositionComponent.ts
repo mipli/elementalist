@@ -53,6 +53,13 @@ export class PositionComponent extends Component {
         });
     }
 
+    distanceTo(x: number, y: number): number {
+        const dx = Math.abs(x - this.x);
+        const dy = Math.abs(y - this.y);
+
+        return dx + dy;
+    }
+
     move(direction: {x: number, y: number}) {
         var oldPosition = {
             x: this.x,

@@ -1,17 +1,22 @@
 import {Guid} from './Guid';
 import {Game} from './Game';
+import {Map} from './Map';
 import {Component} from './components/Component';
 import {InputComponent} from './components/InputComponent';
+import {SightComponent} from './components/SightComponent';
 import {RandomWalkComponent} from './components/RandomWalkComponent';
+import {AIFactionComponent} from './components/AIFactionComponent';
 
 export class Entity {
+    name: string;
     guid: string;
     components: {[name: string]: Component};
     acting: boolean;
 
     listeners: {[name: string]: any[]};
 
-    constructor() {
+    constructor(name: string = '') {
+        this.name = name;
         this.guid = Guid.generate();
         this.acting = false;
         this.components = {};
@@ -24,15 +29,46 @@ export class Entity {
 
     act() {
         var g = new Game();
-        g.render();
+        if (this.name === 'player') {
+            for (var componentName in this.components) {
+                const component = this.components[componentName];
+                const state = component.describeState();
+                if (state) {
+                    console.log(state);
+                }
+            }
+            g.render();
+
+            const c = <SightComponent>this.getComponent('SightComponent');
+            console.log('visible entities', c.getVisibleEntities());
+        }
+
         this.acting = true;
         if (this.hasComponent('InputComponent')) {
             this.handleInputComponent();
         } else if (this.hasComponent('RandomWalkComponent')) {
             this.handleRandomWalkComponent();
+        } else if (this.hasComponent('AIFactionComponent')) {
+            this.handleAIFactionComponent();
         } else {
             this.acting = false;
         }
+    }
+
+    kill() {
+        const g = new Game();
+        g.sendEvent('entityKilled', this);
+    }
+
+    private handleAIFactionComponent() {
+        var g = new Game();
+        g.lockEngine();
+        var component = <AIFactionComponent>this.getComponent('AIFactionComponent');
+        component.act()
+            .then(() => {
+                this.acting = false;
+                g.unlockEngine();
+            });
     }
 
     private handleRandomWalkComponent() {
@@ -41,9 +77,8 @@ export class Entity {
         var component = <RandomWalkComponent>this.getComponent('RandomWalkComponent');
         component.randomWalk()
             .then(() => {
-                g.render();
-                g.unlockEngine();
                 this.acting = false;
+                g.unlockEngine();
             });
     }
 
@@ -53,7 +88,6 @@ export class Entity {
         var component = <InputComponent>this.getComponent('InputComponent');
         component.waitForInput()
             .then(() => {
-                g.render();
                 g.unlockEngine();
                 this.acting = false;
             });
@@ -73,7 +107,7 @@ export class Entity {
         return this.components[name];
     }
 
-    sendEvent(name: string, data: any): Promise<any> {
+    sendEvent(name: string, data: any = null): Promise<any> {
         return new Promise<any>((resolve, reject) => {
             if (!this.listeners[name]) {
                 return false;

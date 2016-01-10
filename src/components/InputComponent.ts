@@ -36,6 +36,7 @@ export class InputComponent extends Component {
                 if (event.getEventType() === KeyboardEventType.DOWN) {
                     this.handleKeyDown(event)
                         .then((result) => {
+                            console.log('result', result);
                             if (result) {
                                 this.waiting = false;
                                 this.resolve();
@@ -55,6 +56,9 @@ export class InputComponent extends Component {
     handleKeyDown(event: KeyboardEvent): Promise<boolean> {
         return new Promise<boolean>((resolve, reject) => {
             switch (event.getKeyCode()) {
+                case ROT.VK_PERIOD:
+                    resolve(true);
+                    break;
                 case ROT.VK_J:
                     this.parent.sendEvent('attemptMove', {x: 0, y: 1})
                         .then((a) => {
@@ -91,10 +95,28 @@ export class InputComponent extends Component {
                             resolve(false);
                         });
                     break;
-                case ROT.VK_PERIOD:
-                    resolve(true);
+                case ROT.VK_1:
+                    this.parent.sendEvent('attemptAbilityFirebolt', {})
+                        .then((result) => {
+                            console.log('result', result);
+                            resolve(true);
+                        })
+                        .catch(() => {
+                            resolve(false);
+                        });
+                    break;
+                case ROT.VK_2:
+                    this.parent.sendEvent('attemptAbilityIceLance', {})
+                        .then((result) => {
+                            console.log('result', result);
+                            resolve(true);
+                        })
+                        .catch(() => {
+                            resolve(false);
+                        });
                     break;
                 default:
+                    console.debug('keyCode not matched', event.getKeyCode());
                     reject();
                     break;
             }

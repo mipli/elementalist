@@ -2,6 +2,7 @@
 
 declare var ROT: any;
 
+import {Map} from './Map';
 import {GameScreen} from './GameScreen';
 import {ActorComponent} from './components/ActorComponent';
 import {InputComponent} from './components/InputComponent';
@@ -25,6 +26,8 @@ export class Game {
     scheduler: any;
     engine: any;
 
+    turnCount: number;
+
     private static instance: Game;
 
     listeners: {[name: string]: any[]};
@@ -35,6 +38,8 @@ export class Game {
         }
         Game.instance = this;
         this.listeners = {};
+        this.turnCount = 0;
+        window['Game'] = this;
     }
 
     public init(width: number, height: number) {
@@ -50,6 +55,11 @@ export class Game {
         document.body.appendChild(this.canvas);
 
         this.scheduler = new ROT.Scheduler.Simple();
+        this.scheduler.add({
+            act: () => {
+                this.turnCount++;
+                console.debug('turn', this.turnCount);
+            }}, true);
         this.engine = new ROT.Engine(this.scheduler);
 
         var gameScreen = new GameScreen(this.display, this.screenWidth, this.screenHeight);
@@ -121,6 +131,12 @@ export class Game {
         this.engine.unlock();
     }
 
+    public removeEntity(entity: Entity) {
+        if (entity.hasComponent('ActorComponent')) {
+            this.scheduler.remove(entity);
+        }
+    }
+
     public addEntity(entity: Entity) {
         if (entity.hasComponent('ActorComponent')) {
             this.scheduler.add(entity, true);
@@ -129,8 +145,6 @@ export class Game {
             var component = <InputComponent>entity.getComponent('InputComponent');
             this.bindEvent('keypress', this.convertKeyEvent, component.handleEvent.bind(component));
             this.bindEvent('keydown', this.convertKeyEvent, component.handleEvent.bind(component));
-
-
         }
     }
 
@@ -173,5 +187,13 @@ export class Game {
 
     public render() {
         this.activeScreen.render();
+    }
+
+    public getMap(): Map {
+        return this.activeScreen.getMap();
+    }
+
+    public getCurrentTurn() {
+        return this.turnCount;
     }
 }

@@ -10,7 +10,12 @@ import {ActorComponent} from './components/ActorComponent';
 import {GlyphComponent} from './components/GlyphComponent';
 import {PositionComponent} from './components/PositionComponent';
 import {InputComponent} from './components/InputComponent';
+import {SightComponent} from './components/SightComponent';
 import {RandomWalkComponent} from './components/RandomWalkComponent';
+import {AIFactionComponent} from './components/AIFactionComponent';
+import {FactionComponent} from './components/FactionComponent';
+import {FireAffinityComponent} from './components/FireAffinityComponent';
+import {IceAffinityComponent} from './components/IceAffinityComponent';
 
 export class Map {
     width: number;
@@ -18,21 +23,56 @@ export class Map {
     tiles: Tile[][];
 
     entities: {[guid: string]: Entity};
+    maxEnemies: number;
 
-    constructor(width: number, height: number) {
+    fov: any;
+
+    constructor(width: number, height: number, maxEnemies: number = 10) {
         this.width = width;
         this.height = height;
+        this.maxEnemies = maxEnemies;
         this.tiles = [];
         this.entities = {};
 
         var g = new Game();
         g.addListener('entityMoved', this.entityMovedListener.bind(this));
+        g.addListener('entityKilled', this.entityKilledListener.bind(this));
+    }
+
+    setupFov() {
+        this.fov = new ROT.FOV.DiscreteShadowcasting(
+            (x, y) => {
+                const tile = this.getTile(x, y);
+                if (!tile) {
+                    return false;
+                }
+                return !tile.blocksLight();
+            },
+            {topology: 4}
+        );
+    }
+
+    getVisibleCells(entity: Entity, distance: number): {[pos: string]: boolean} {
+        let visibleCells: any = {};
+
+        const positionComponent = <PositionComponent>entity.getComponent('PositionComponent');
+
+        this.fov.compute(
+            positionComponent.getX(),
+            positionComponent.getY(),
+            distance,
+            (x, y, radius, visibility) => {
+                visibleCells[x + "," + y] = true;
+            });
+        return visibleCells;
     }
 
     mapEntities(callback: (item: Entity) => any) {
         for (var entityGuid in this.entities) {
             var entity = this.entities[entityGuid];
-            callback(entity);
+            if (entity) {
+                callback(entity);
+            }
         }
     }
 
@@ -45,33 +85,63 @@ export class Map {
     }
 
     getTile(x: number, y: number) {
+        if (x < 0 || y < 0 || x >= this.width || y >= this.height) {
+            return null;
+        }
         return this.tiles[x][y];
     }
 
     generate() {
         this.tiles = this.generateLevel();
+        this.setupFov();
 
+        for (var i = 0; i < this.maxEnemies; i++) {
+            this.addFireImp();
+        }
+
+        for (var i = 0; i < this.maxEnemies; i++) {
+            this.addIceImp();
+        }
+    }
+
+    addFireImp() {
         var g = new Game();
-
-        var player = new Entity();
-        player.addComponent(new ActorComponent());
-        player.addComponent(new GlyphComponent({
-            glyph: new Glyph('@', 'white', 'black')
-        }));
-        player.addComponent(new PositionComponent());
-        player.addComponent(new InputComponent());
-
-        this.addEntityAtRandomPosition(player);
-
-        g.addEntity(player);
-
         var enemy = new Entity();
         enemy.addComponent(new ActorComponent());
         enemy.addComponent(new GlyphComponent({
-            glyph: new Glyph('n', 'cyan', 'black')
+            glyph: new Glyph('f', 'red', 'black')
+        }));
+        enemy.addComponent(new PositionComponent());
+        enemy.addComponent(new AIFactionComponent());
+        enemy.addComponent(new FireAffinityComponent());
+        enemy.addComponent(new SightComponent());
+        enemy.addComponent(new FactionComponent( {
+            fire: 1,
+            ice: 0,
+            hero: -1
+        }));
+
+        this.addEntityAtRandomPosition(enemy);
+
+        g.addEntity(enemy);
+    }
+
+    addIceImp() {
+        var g = new Game();
+        var enemy = new Entity();
+        enemy.addComponent(new ActorComponent());
+        enemy.addComponent(new GlyphComponent({
+            glyph: new Glyph('i', 'cyan', 'black')
         }));
         enemy.addComponent(new PositionComponent());
         enemy.addComponent(new RandomWalkComponent());
+        enemy.addComponent(new IceAffinityComponent());
+        enemy.addComponent(new SightComponent());
+        enemy.addComponent(new FactionComponent( {
+            fire: 0,
+            ice: 1,
+            hero: -1
+        }));
 
         this.addEntityAtRandomPosition(enemy);
 
@@ -111,10 +181,40 @@ export class Map {
         this.entities[entity.getGuid()] = entity;
     }
 
+    removeEntity(entity: Entity) {
+        const game = new Game();
+        const positionComponent = <PositionComponent>entity.getComponent('PositionComponent');
+        game.removeEntity(entity);
+        this.entities[entity.getGuid()] = null
+        this.getTile(positionComponent.getX(), positionComponent.getY()).setEntityGuid('');
+    }
+
     positionHasEntity(x: number, y: number) {
         var tile = this.getTile(x, y);
         var entityGuid = tile.getEntityGuid();
         return entityGuid !== '';
+    }
+
+    getNearbyEntities(originComponent: PositionComponent, radius: number, filter: (entity: Entity) => boolean = (e) => {return true;}): Entity[] {
+        let entities = [];
+        this.mapEntities((entity) => {
+            if (!filter(entity)) {
+                return;
+            }
+            const positionComponent = <PositionComponent>entity.getComponent('PositionComponent');
+            if (positionComponent === originComponent) {
+                return;
+            }
+            const distance = positionComponent.distanceTo(originComponent.getX(), originComponent.getY());
+            if (distance <= radius) {
+                entities.push({distance: distance, entity: entity});
+            }
+        });
+        entities.sort((a, b) => {
+            return a.distance - b.distance;
+        });
+        entities = entities.map((a) => { return a.entity; });
+        return entities;
     }
 
     private generateLevel(): Tile[][] {
@@ -155,6 +255,13 @@ export class Map {
             var positionComponent = <PositionComponent>entity.getComponent('PositionComponent');
             this.getTile(oldPosition.x, oldPosition.y).setEntityGuid('');
             this.getTile(positionComponent.getX(), positionComponent.getY()).setEntityGuid(entity.getGuid());
+            resolve(data);
+        });
+    }
+
+    private entityKilledListener(data: Entity): Promise<any> {
+        return new Promise<any>((resolve, reject) => {
+            this.removeEntity(data);
             resolve(data);
         });
     }

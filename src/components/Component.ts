@@ -13,4 +13,8 @@ export class Component {
 
     public setListeners() {
     }
+
+    public describeState(): string {
+        return '';
+    }
 }
