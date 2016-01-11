@@ -28,6 +28,8 @@ export class Game {
     engine: any;
 
     turnCount: number;
+    turnTime: number;
+    minTurnTime: number;
 
     private static instance: Game;
 
@@ -40,6 +42,8 @@ export class Game {
         Game.instance = this;
         this.listeners = {};
         this.turnCount = 0;
+        this.turnTime = (new Date()).getTime();
+        this.minTurnTime = 100;
         window['Game'] = this;
     }
 

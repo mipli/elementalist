@@ -136,7 +136,13 @@ export class InputComponent extends Component {
             const newPosition = this.getPositionAfterDirection(direction);
             const entity = this.map.getEntityAt(newPosition.x, newPosition.y);
             if (entity) {
-                reject();
+                this.parent.sendEvent('attemptMeleeAttack', direction)
+                    .then(() => {
+                        resolve();
+                    })
+                    .catch(() => {
+                        reject();
+                    });
             } else {
                 this.parent.sendEvent('attemptMove', direction)
                     .then(() => {

@@ -40,7 +40,6 @@ export class Entity {
             g.render();
 
             const c = <SightComponent>this.getComponent('SightComponent');
-            console.log('visible entities', c.getVisibleEntities());
         }
 
         this.acting = true;
@@ -55,9 +54,21 @@ export class Entity {
         }
     }
 
-    kill() {
-        const g = new Game();
-        g.sendEvent('entityKilled', this);
+    kill(): Promise<any> {
+        return new Promise<any>((resolve, reject) => {
+            const g = new Game();
+            this.sendEvent('killed')
+                .then(() => {
+                    g.sendEvent('entityKilled', this)
+                        .then(resolve)
+                        .catch(resolve);
+                })
+                .catch(() => {
+                    g.sendEvent('entityKilled', this)
+                        .then(resolve)
+                        .catch(resolve);
+                });
+        });
     }
 
     private handleAIFactionComponent() {
@@ -110,11 +121,14 @@ export class Entity {
     sendEvent(name: string, data: any = null): Promise<any> {
         return new Promise<any>((resolve, reject) => {
             if (!this.listeners[name]) {
-                return false;
+                reject();
             }
             var returnData;
 
             var listeners = this.listeners[name];
+            if (!listeners || listeners.length === 0) {
+                reject();
+            }
             var i = 0;
 
             var callNext = (data) => {

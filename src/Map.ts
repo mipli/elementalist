@@ -16,6 +16,7 @@ import {AIFactionComponent} from './components/AIFactionComponent';
 import {FactionComponent} from './components/FactionComponent';
 import {FireAffinityComponent} from './components/FireAffinityComponent';
 import {IceAffinityComponent} from './components/IceAffinityComponent';
+import {MeleeAttackComponent} from './components/MeleeAttackComponent';
 
 export class Map {
     width: number;
@@ -116,6 +117,7 @@ export class Map {
         enemy.addComponent(new AIFactionComponent());
         enemy.addComponent(new FireAffinityComponent());
         enemy.addComponent(new SightComponent());
+        enemy.addComponent(new MeleeAttackComponent());
         enemy.addComponent(new FactionComponent( {
             fire: 1,
             ice: 0,
@@ -136,6 +138,7 @@ export class Map {
         }));
         enemy.addComponent(new PositionComponent());
         enemy.addComponent(new AIFactionComponent());
+        enemy.addComponent(new MeleeAttackComponent());
         enemy.addComponent(new IceAffinityComponent());
         enemy.addComponent(new SightComponent());
         enemy.addComponent(new FactionComponent( {

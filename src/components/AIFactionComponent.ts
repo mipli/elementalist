@@ -69,7 +69,16 @@ export class AIFactionComponent extends Component {
             var dy = Math.abs(this.targetPos.y - position.getY());
             let direction: any;
 
-            if (dx > dy) {
+            if (dx + dy === 1) {
+                direction = {
+                    x: dx == 0 ? 0 : Math.floor((this.targetPos.x - position.getX()) / dx),
+                    y: dy == 0 ? 0 : Math.floor((this.targetPos.y - position.getY()) / dy)
+                };
+                console.log('trying to attack!', direction);
+                this.attemptAttack(direction)
+                    .then(resolve)
+                    .catch(reject)
+            } else if (dx > dy) {
                 direction = {
                     x: (this.targetPos.x - position.getX()) / dx,
                     y: 0
@@ -116,6 +125,19 @@ export class AIFactionComponent extends Component {
                             });
                     });
             }
+        });
+    }
+
+    attemptAttack(direction): Promise<any> {
+        return new Promise<any>((resolve, reject) => {
+            this.parent.sendEvent('attemptMeleeAttack', direction)
+                .then(() => {
+                    resolve(true);
+                })
+                .catch(() => {
+                    reject();
+                })
+            ;
         });
     }
 

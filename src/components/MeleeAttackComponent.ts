@@ -23,9 +23,15 @@ export class MeleeAttackComponent extends Component {
         return new Promise<any>((resolve, reject) => {
             const positionComponent = <PositionComponent>this.parent.getComponent('PositionComponent');
             const target = this.map.getEntityAt(positionComponent.getX() + direction.x, positionComponent.getY() + direction.y);
-            console.log(target);
 
-            resolve();
+            if (!target) {
+                reject();
+            }
+
+            target.kill()
+                .then(resolve);
+
+            console.log('killed', target);
 
         });
     }

@@ -8,6 +8,7 @@ import {Tile} from './Tile';
 import * as Tiles from './Tiles';
 
 import {ActorComponent} from './components/ActorComponent';
+import {PlayerComponent} from './components/PlayerComponent';
 import {SightComponent} from './components/SightComponent';
 import {GlyphComponent} from './components/GlyphComponent';
 import {PositionComponent} from './components/PositionComponent';
@@ -43,6 +44,7 @@ export class GameScreen {
         this.nullTile = Tiles.create.nullTile();
 
         this.player = new Entity('player');
+        this.player.addComponent(new PlayerComponent());
         this.player.addComponent(new ActorComponent());
         this.player.addComponent(new GlyphComponent({
             glyph: new Glyph('@', 'white', 'black')
