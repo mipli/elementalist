@@ -77,7 +77,20 @@ export class Game {
 
         this.engine.start();
 
+        this.addListener('entityKilled', this.entityDeathListener.bind(this));
+
         this.render();
+    }
+
+    private entityDeathListener(entity: Entity): Promise<any> {
+        return new Promise<any>((resolve, reject) => {
+            if (entity.hasComponent('PlayerComponent')) {
+                console.log('The player is dead!');
+                this.render();
+                this.lockEngine();
+            }
+            resolve();
+        });
     }
 
     private bindEvent(eventName: string, converter: any, callback: any) {

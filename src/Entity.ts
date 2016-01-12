@@ -8,15 +8,13 @@ import {RandomWalkComponent} from './components/RandomWalkComponent';
 import {AIFactionComponent} from './components/AIFactionComponent';
 
 export class Entity {
-    name: string;
     guid: string;
     components: {[name: string]: Component};
     acting: boolean;
 
     listeners: {[name: string]: any[]};
 
-    constructor(name: string = '') {
-        this.name = name;
+    constructor() {
         this.guid = Guid.generate();
         this.acting = false;
         this.components = {};
@@ -29,7 +27,7 @@ export class Entity {
 
     act() {
         var g = new Game();
-        if (this.name === 'player') {
+        if (this.hasComponent('PlayerComponent')) {
             for (var componentName in this.components) {
                 const component = this.components[componentName];
                 const state = component.describeState();
@@ -38,8 +36,6 @@ export class Entity {
                 }
             }
             g.render();
-
-            const c = <SightComponent>this.getComponent('SightComponent');
         }
 
         this.acting = true;

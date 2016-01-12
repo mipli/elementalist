@@ -43,7 +43,7 @@ export class GameScreen {
 
         this.nullTile = Tiles.create.nullTile();
 
-        this.player = new Entity('player');
+        this.player = new Entity();
         this.player.addComponent(new PlayerComponent());
         this.player.addComponent(new ActorComponent());
         this.player.addComponent(new GlyphComponent({
