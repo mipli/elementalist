@@ -6,6 +6,7 @@ import {Glyph} from './Glyph';
 import {Entity} from './Entity';
 import {Tile} from './Tile';
 import * as Tiles from './Tiles';
+import * as Spawn from './Spawn';
 
 import {ActorComponent} from './components/ActorComponent';
 import {PlayerComponent} from './components/PlayerComponent';
@@ -38,34 +39,18 @@ export class GameScreen {
         this.width = width;
         this.height = height;
         this.map = map;
-        //new Map(this.width, this.height - 1);
-        //this.map.generate();
 
         this.nullTile = Tiles.create.nullTile();
 
-        this.player = new Entity();
-        this.player.addComponent(new PlayerComponent());
-        this.player.addComponent(new ActorComponent());
-        this.player.addComponent(new GlyphComponent({
-            glyph: new Glyph('@', 'white', 'black')
-        }));
-        this.player.addComponent(new PositionComponent());
-        this.player.addComponent(new InputComponent());
-        this.player.addComponent(new SightComponent({
-            distance: 50
-        }));
-        this.player.addComponent(new FactionComponent({
-            hero: 1,
-            ice: -1,
-            fire: -1
-        }));
-        this.player.addComponent(new AbilityFireboltComponent());
-        this.player.addComponent(new AbilityIceLanceComponent());
-        this.player.addComponent(new MeleeAttackComponent());
+        this.player = Spawn.entity.Player();
 
         this.map.addEntityAtRandomPosition(this.player);
 
         this.game.addEntity(this.player);
+    }
+
+    getPlayer(): Entity {
+        return this.player;
     }
 
     render() {

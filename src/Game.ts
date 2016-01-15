@@ -6,6 +6,7 @@ import {Map} from './Map';
 import {GameScreen} from './GameScreen';
 import {ActorComponent} from './components/ActorComponent';
 import {InputComponent} from './components/InputComponent';
+import {PositionComponent} from './components/PositionComponent';
 
 import {Entity} from './Entity';
 
@@ -72,6 +73,15 @@ export class Game {
 
         var gameScreen = new GameScreen(this.display, this.screenWidth, this.screenHeight, this.map);
         this.activeScreen = gameScreen;
+
+        const player = gameScreen.getPlayer();
+        const position = <PositionComponent>player.getComponent('PositionComponent');
+
+        this.map.addEnemies({
+            x: position.getX(),
+            y: position.getY(),
+            r: 5
+        });
 
         this.bindInputHandling();
 

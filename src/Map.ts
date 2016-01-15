@@ -5,6 +5,7 @@ import {Tile} from './Tile';
 import {Glyph} from './Glyph';
 import {Entity} from './Entity';
 import * as Tiles from './Tiles';
+import * as Spawn from './Spawn';
 
 import {ActorComponent} from './components/ActorComponent';
 import {GlyphComponent} from './components/GlyphComponent';
@@ -97,72 +98,48 @@ export class Map {
         this.tiles = this.generateLevel();
         this.setupFov();
 
+    }
+
+    addEnemies(avoid: {x: number, y: number, r: number} = {x: -1, y: -1, r: -1}) {
+        const g = new Game();
+        let enemy: Entity;
         for (var i = 0; i < this.maxEnemies; i++) {
-            this.addFireImp();
+            enemy = Spawn.entity.FireImp();
+            this.addEntityAtRandomPosition(enemy, avoid);
+            g.addEntity(enemy);
         }
 
         for (var i = 0; i < this.maxEnemies; i++) {
-            this.addIceImp();
+            enemy = Spawn.entity.IceImp();
+            this.addEntityAtRandomPosition(enemy, avoid);
+            g.addEntity(enemy);
         }
     }
 
-    addFireImp() {
-        var g = new Game();
-        var enemy = new Entity();
-        enemy.addComponent(new ActorComponent());
-        enemy.addComponent(new GlyphComponent({
-            glyph: new Glyph('f', 'red', 'black')
-        }));
-        enemy.addComponent(new PositionComponent());
-        enemy.addComponent(new AIFactionComponent());
-        enemy.addComponent(new FireAffinityComponent());
-        enemy.addComponent(new SightComponent());
-        enemy.addComponent(new MeleeAttackComponent());
-        enemy.addComponent(new FactionComponent( {
-            fire: 1,
-            ice: 0,
-            hero: -1
-        }));
-
-        this.addEntityAtRandomPosition(enemy);
-
-        g.addEntity(enemy);
-    }
-
-    addIceImp() {
-        var g = new Game();
-        var enemy = new Entity();
-        enemy.addComponent(new ActorComponent());
-        enemy.addComponent(new GlyphComponent({
-            glyph: new Glyph('i', 'cyan', 'black')
-        }));
-        enemy.addComponent(new PositionComponent());
-        enemy.addComponent(new AIFactionComponent());
-        enemy.addComponent(new MeleeAttackComponent());
-        enemy.addComponent(new IceAffinityComponent());
-        enemy.addComponent(new SightComponent());
-        enemy.addComponent(new FactionComponent( {
-            fire: 0,
-            ice: 1,
-            hero: -1
-        }));
-
-        this.addEntityAtRandomPosition(enemy);
-
-        g.addEntity(enemy);
-    }
-
-    addEntityAtRandomPosition(entity: Entity): boolean {
+    addEntityAtRandomPosition(entity: Entity, avoid: {x: number, y: number, r: number} = {x: -1, y: -1, r: -1}): boolean {
         if (!entity.hasComponent('PositionComponent')) {
             return false;
         }
         var found = false;
         var maxTries = this.width * this.height * 10;
         var i = 0;
+        let x = -1;
+        let y = -1;
         while (!found && i < maxTries) {
-            var x = Math.floor(Math.random() * this.width);
-            var y = Math.floor(Math.random() * this.height);
+            x = Math.floor(Math.random() * this.width);
+            y = Math.floor(Math.random() * this.height);
             i++;
+            if (avoid.x !== -1) {
+                const dx = Math.abs(x - avoid.x);
+                const dy = Math.abs(y - avoid.y);
+
+                if (dx + dy <= avoid.r) {
+                    console.log('avoiding ', dx + dy);
+                    continue;
+                }
+
+            }
+
             if (this.getTile(x, y).isWalkable() && !this.positionHasEntity(x, y)) {
                 found = true;
             }
