@@ -90,6 +90,20 @@ export class GameScreen {
         return this.map;
     }
 
+    startAimMove(): Promise<any> {
+        return new Promise<any>((resolve, reject) => {
+            let aimer = new Entity();
+            aimer.addComponent(new ActorComponent());
+            aimer.addComponent(new GlyphComponent({
+                glyph: new Glyph('+', 'white', 'black')
+            }));
+            aimer.addComponent(new PositionComponent());
+            aimer.addComponent(new InputComponent());
+            this.map.addEntity(aimer);
+            aimer.act();
+        });
+    }
+
     private getRenderableBoundary() {
         return {
             x: 0,

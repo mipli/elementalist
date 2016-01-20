@@ -2,6 +2,7 @@ import {Glyph} from './Glyph';
 import {Entity} from './Entity';
 
 import {ActorComponent} from './components/ActorComponent';
+import {TurnComponent} from './components/TurnComponent';
 import {PlayerComponent} from './components/PlayerComponent';
 import {GlyphComponent} from './components/GlyphComponent';
 import {PositionComponent} from './components/PositionComponent';
@@ -20,6 +21,7 @@ export module entity {
     export function FireImp() {
         var enemy = new Entity();
         enemy.addComponent(new ActorComponent());
+        enemy.addComponent(new TurnComponent());
         enemy.addComponent(new GlyphComponent({
             glyph: new Glyph('f', 'red', 'black')
         }));
@@ -40,6 +42,7 @@ export module entity {
     export function IceImp() {
         var enemy = new Entity();
         enemy.addComponent(new ActorComponent());
+        enemy.addComponent(new TurnComponent());
         enemy.addComponent(new GlyphComponent({
             glyph: new Glyph('i', 'cyan', 'black')
         }));
@@ -59,6 +62,7 @@ export module entity {
     export function Player() {
         var player = new Entity();
         player.addComponent(new PlayerComponent());
+        player.addComponent(new TurnComponent());
         player.addComponent(new ActorComponent());
         player.addComponent(new GlyphComponent({
             glyph: new Glyph('@', 'white', 'black')

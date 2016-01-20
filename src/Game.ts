@@ -5,6 +5,7 @@ declare var ROT: any;
 import {Map} from './Map';
 import {GameScreen} from './GameScreen';
 import {ActorComponent} from './components/ActorComponent';
+import {TurnComponent} from './components/TurnComponent';
 import {InputComponent} from './components/InputComponent';
 import {PositionComponent} from './components/PositionComponent';
 
@@ -163,13 +164,13 @@ export class Game {
     }
 
     public removeEntity(entity: Entity) {
-        if (entity.hasComponent('ActorComponent')) {
+        if (entity.hasComponent('TurnComponent')) {
             this.scheduler.remove(entity);
         }
     }
 
     public addEntity(entity: Entity) {
-        if (entity.hasComponent('ActorComponent')) {
+        if (entity.hasComponent('TurnComponent')) {
             this.scheduler.add(entity, true);
         }
         if (entity.hasComponent('InputComponent')) {
@@ -222,6 +223,10 @@ export class Game {
 
     public getMap(): Map {
         return this.map;
+    }
+
+    public getActiveScreen() {
+        return this.activeScreen;
     }
 
     public getCurrentTurn() {

@@ -67,6 +67,17 @@ export class InputComponent extends Component {
                 case ROT.VK_PERIOD:
                     resolve(true);
                     break;
+                case ROT.VK_X:
+                    var screen = this.game.getActiveScreen();
+                    screen.startAimMove()
+                        .then(() => {
+                            resolve(true);
+                        })
+                        .catch(() => {
+                            resolve(true);
+                        })
+
+                    break;
                 case ROT.VK_J:
                     this.directionPressed({x: 0, y: 1})
                         .then(() => {

@@ -3,6 +3,7 @@ import {Game} from './Game';
 import {Map} from './Map';
 import {Component} from './components/Component';
 import {InputComponent} from './components/InputComponent';
+import {TurnComponent} from './components/TurnComponent';
 import {SightComponent} from './components/SightComponent';
 import {RandomWalkComponent} from './components/RandomWalkComponent';
 import {AIFactionComponent} from './components/AIFactionComponent';
@@ -19,6 +20,7 @@ export class Entity {
         this.acting = false;
         this.components = {};
         this.listeners = {};
+
     }
 
     getGuid(): string {
@@ -26,7 +28,13 @@ export class Entity {
     }
 
     act() {
+        if (this.acting) {
+            return;
+        }
+        this.acting = true;
         var g = new Game();
+        this.sendEvent('nextTurn').then().catch();
+
         if (this.hasComponent('PlayerComponent')) {
             for (var componentName in this.components) {
                 const component = this.components[componentName];
@@ -38,7 +46,6 @@ export class Entity {
             g.render();
         }
 
-        this.acting = true;
         if (this.hasComponent('InputComponent')) {
             this.handleInputComponent();
         } else if (this.hasComponent('RandomWalkComponent')) {
@@ -68,35 +75,29 @@ export class Entity {
     }
 
     private handleAIFactionComponent() {
-        var g = new Game();
-        g.lockEngine();
         var component = <AIFactionComponent>this.getComponent('AIFactionComponent');
         component.act()
             .then(() => {
                 this.acting = false;
-                g.unlockEngine();
+                this.sendEvent('turnFinished').then().catch();
             });
     }
 
     private handleRandomWalkComponent() {
-        var g = new Game();
-        g.lockEngine();
         var component = <RandomWalkComponent>this.getComponent('RandomWalkComponent');
         component.randomWalk()
             .then(() => {
                 this.acting = false;
-                g.unlockEngine();
+                this.sendEvent('turnFinished').then().catch();
             });
     }
 
     private handleInputComponent() {
-        var g = new Game();
-        g.lockEngine();
         var component = <InputComponent>this.getComponent('InputComponent');
         component.waitForInput()
             .then(() => {
-                g.unlockEngine();
                 this.acting = false;
+                this.sendEvent('turnFinished').then().catch();
             });
     }
 
